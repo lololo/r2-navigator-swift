@@ -11,6 +11,24 @@
         }
       },
       {
+        "package": "Minizip",
+        "repositoryURL": "https://github.com/lololo/minizip.git",
+        "state": {
+          "branch": "master",
+          "revision": "9b6ffb41db3ea7afc987df4b88b8b3632ab4ae19",
+          "version": null
+        }
+      },
+      {
+        "package": "R2Shared",
+        "repositoryURL": "https://github.com/lololo/r2-shared-swift.git",
+        "state": {
+          "branch": "develop",
+          "revision": "71f40cd030a10631390f6189966f9c7209d25d89",
+          "version": null
+        }
+      },
+      {
         "package": "SwiftSoup",
         "repositoryURL": "https://github.com/scinfu/SwiftSoup.git",
         "state": {
