@@ -94,7 +94,7 @@ class EPUBSpreadView: UIView, Loggable {
         }
         registerJSMessages()
 
-        NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibility.voiceOverStatusDidChangeNotification.rawValue), object: nil)
         
         UIMenuController.shared.menuItems = [
             UIMenuItem(
@@ -127,7 +127,7 @@ class EPUBSpreadView: UIView, Loggable {
             // Prevents the pages from jumping down when the status bar is toggled
             scrollView.contentInsetAdjustmentBehavior = .never
         }
-
+        
         webView.navigationDelegate = self
         webView.uiDelegate = self
         scrollView.delegate = self
