@@ -1,4 +1,4 @@
-// swift-tools-version:5.0
+// swift-tools-version:5.3
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 import PackageDescription
 
@@ -12,12 +12,16 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "1.7.4"),
-        .package(url: "https://github.com/lololo/r2-shared-swift.git", .branch("develop") )
+        .package(name:"R2Shared", url: "https://github.com/lololo/r2-shared-swift.git", .branch("develop") )
     ],
     targets: [
         .target(name: "R2Navigator",
                 dependencies: ["SwiftSoup", "R2Shared"],
-                path: "r2-navigator-swift"
+                path: "r2-navigator-swift",
+                exclude:["Info.plist","Resources"],
+                resources:[
+                    .copy("EPUB/Resources")
+                ]
         ),
     ]
 )
