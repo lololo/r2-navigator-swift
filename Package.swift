@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "R2Navigator",
+    defaultLocalization: "en",
     platforms: [
         .macOS(.v10_10), .iOS(.v12), .tvOS(.v9), .watchOS(.v3)
     ],
@@ -18,8 +19,9 @@ let package = Package(
         .target(name: "R2Navigator",
                 dependencies: ["SwiftSoup", "R2Shared"],
                 path: "r2-navigator-swift",
-                exclude:["Info.plist","Resources"],
+                exclude:["Info.plist"],
                 resources:[
+                    .process("Resources"),
                     .copy("EPUB/Resources")
                 ]
         ),

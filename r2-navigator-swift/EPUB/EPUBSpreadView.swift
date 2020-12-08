@@ -310,7 +310,7 @@ class EPUBSpreadView: UIView, Loggable {
     private static let utilsScript = loadScript(named: "utils")
 
     class func loadScript(named name: String) -> String {
-        return Bundle(for: EPUBSpreadView.self)
+        return Bundle.module
             .url(forResource: "Scripts/\(name)", withExtension: "js")
             .flatMap { try? String(contentsOf: $0) }!
     }
