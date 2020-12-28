@@ -11,7 +11,6 @@
 
 import Foundation
 import WebKit
-
 /// A custom web view which:
 ///  - Forwards copy: menu action to an EditingActionsController.
 final class WebView: WKWebView {
@@ -35,9 +34,26 @@ final class WebView: WKWebView {
     }
 
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-        return super.canPerformAction(action, withSender: sender)
-            && editingActions.canPerformAction(action)
+//        let webCanp = super.canPerformAction(action, withSender: sender)
+//        let edieCanp = editingActions.canPerformAction(action)
+        return editingActions.canPerformAction(action)
+        
     }
+    // MARK: Action
+    @objc func showFullTranslate(_ sender:Any?) {
+        
+        self.editingActions.showTranslat()
+        
+    }
+    
+    @objc func speak(_ sender: Any?) {
+        self.editingActions.speak()
+    }
+    
+    @objc func toggle(_ sender:Any?) {
+        
+    }
+    
     
     override func copy(_ sender: Any?) {
         editingActions.copy()
@@ -60,5 +76,6 @@ final class WebView: WKWebView {
             contentView.removeInteraction(dragInteraction)
         }
     }
+
     
 }

@@ -12,12 +12,13 @@ let package = Package(
         .library(name: "R2Navigator", targets: ["R2Navigator"]),
     ],
     dependencies: [
+        .package(path: "/Users/lei/Projects/Floral/Translator"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "1.7.4"),
         .package(name:"R2Shared", url: "https://github.com/lololo/r2-shared-swift.git", .branch("develop") )
     ],
     targets: [
         .target(name: "R2Navigator",
-                dependencies: ["SwiftSoup", "R2Shared"],
+                dependencies: ["SwiftSoup", "R2Shared", "Translator"],
                 path: "r2-navigator-swift",
                 exclude:["Info.plist"],
                 resources:[

@@ -29,6 +29,15 @@
         }
       },
       {
+        "package": "SQLite",
+        "repositoryURL": "https://github.com/lololo/SQLite.git",
+        "state": {
+          "branch": "master",
+          "revision": "c2a7fac5a9eb4c2de148c4832618a62c16cd9086",
+          "version": null
+        }
+      },
+      {
         "package": "SwiftSoup",
         "repositoryURL": "https://github.com/scinfu/SwiftSoup.git",
         "state": {
