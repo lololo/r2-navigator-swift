@@ -12,6 +12,7 @@
 import WebKit
 import R2Shared
 import SwiftSoup
+import Translator
 
 
 protocol EPUBSpreadViewDelegate: class {
@@ -45,6 +46,8 @@ class EPUBSpreadView: UIView, Loggable {
     let readingProgression: ReadingProgression
     let userSettings: UserSettings
     let editingActions: EditingActionsController
+    
+    var isMenuShow = false
     
     private var lastTap: TapData? = nil
 
@@ -92,22 +95,50 @@ class EPUBSpreadView: UIView, Loggable {
         }
         registerJSMessages()
 
-        NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibility.voiceOverStatusDidChangeNotification.rawValue), object: nil)
         
         UIMenuController.shared.menuItems = [
             UIMenuItem(
-                title: R2NavigatorLocalizedString("EditingAction.share"),
+                title: NSLocalizedString("R2Navigator.EditingAction.share", comment: ""),
                 action: #selector(shareSelection)
             )
         ]
         
+        observerMenuNotification()
         updateActivityIndicator()
         loadSpread()
+        
+        let translateModelUpdate = {
+            let tm = UserDefaults.standard.bool(forKey: "kTranslateModel")
+            self.editingActions.model = tm ? EditingModel.translate : EditingModel.normal
+        }
+        
+        translateModelUpdate();
+        
+        NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "kTranslateModelChange"),
+                                               object: nil, queue: nil) { (notification) in
+            translateModelUpdate()
+        }
     }
     
     deinit {
         NotificationCenter.default.removeObserver(self)
         disableJSMessages()
+    }
+    
+    func observerMenuNotification() {
+        
+        NotificationCenter.default.addObserver(forName: UIMenuController.didHideMenuNotification,
+                                               object: nil,
+                                               queue: OperationQueue.main) { [weak self] _ in
+            self?.isMenuShow = false
+        }
+        
+        NotificationCenter.default.addObserver(forName: UIMenuController.willShowMenuNotification,
+                                               object: nil,
+                                               queue: OperationQueue.main) {[weak self]  _  in
+            self?.isMenuShow = true
+        }
     }
 
     func setupWebView() {
@@ -125,7 +156,7 @@ class EPUBSpreadView: UIView, Loggable {
             // Prevents the pages from jumping down when the status bar is toggled
             scrollView.contentInsetAdjustmentBehavior = .never
         }
-
+        
         webView.navigationDelegate = self
         webView.uiDelegate = self
         scrollView.delegate = self
@@ -192,6 +223,13 @@ class EPUBSpreadView: UIView, Loggable {
     /// If the JS indicates the tap is being handled within the webview, don't take action,
     /// just save the tap data for use by webView(_ webView:decidePolicyFor:decisionHandler:)
     private func didTap(_ data: Any) {
+        
+        
+        // translate 模式, 已显示 翻译框的时候点击事件不传导
+        if self.editingActions.model == .translate,
+           self.isMenuShow {
+            return
+        }
         let tapData = TapData(data: data)
         lastTap = tapData
         
@@ -234,6 +272,25 @@ class EPUBSpreadView: UIView, Loggable {
             self.scrollView.alpha = 1
         })
     }
+    
+    func translate(_ text:String) {
+        
+        guard let simpleText = Translator.share.translate(text: text, simple: true) else {
+            return
+        }
+
+        self.editingActions.model = .translate
+        
+        
+        UIMenuController.shared.menuItems = [
+            UIMenuItem(title: "🔊", action: Selector(EditingAction.speak.rawValue)),
+            UIMenuItem(
+                title: simpleText,
+                action: Selector(EditingAction.translate.rawValue)
+            ),
+        ]
+        UIMenuController.shared.update()
+    }
 
     /// Called by the JavaScript layer when the user selection changed.
     private func selectionDidChange(_ body: Any) {
@@ -244,6 +301,19 @@ class EPUBSpreadView: UIView, Loggable {
             log(.warning, "Invalid body for selectionDidChange: \(body)")
             return
         }
+        UIMenuController.shared.menuItems = [
+            UIMenuItem(title: "🔊", action: Selector(EditingAction.speak.rawValue)),
+            UIMenuItem(
+                title: "...",
+                action: Selector(EditingAction.translate.rawValue)
+            )
+        ]
+        
+        if self.editingActions.model == .translate {
+            translate(text)
+        }
+        
+        
         editingActions.selectionDidChange((
             text: text,
             frame: CGRect(
@@ -300,7 +370,6 @@ class EPUBSpreadView: UIView, Loggable {
         // The default implementation of a spread view consider that its content is entirely visible on screen.
         return false
     }
-
     
     // MARK: - Scripts
     
@@ -308,7 +377,7 @@ class EPUBSpreadView: UIView, Loggable {
     private static let utilsScript = loadScript(named: "utils")
 
     class func loadScript(named name: String) -> String {
-        return Bundle(for: EPUBSpreadView.self)
+        return Bundle.module
             .url(forResource: "Scripts/\(name)", withExtension: "js")
             .flatMap { try? String(contentsOf: $0) }!
     }

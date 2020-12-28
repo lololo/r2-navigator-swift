@@ -12,16 +12,24 @@
 import Foundation
 import UIKit
 import R2Shared
+import Translator
 
 
 public enum EditingAction: String {
     case copy = "copy:"
     case share = "shareSelection:"
     case lookup = "_lookup:"
+    case translate = "showFullTranslate:"
+    case speak = "speak:"
     
     public static var defaultActions: [EditingAction] {
-        return [copy, share, lookup]
+        return [copy, share, lookup, translate, speak]
     }
+}
+
+public enum EditingModel {
+    case normal
+    case translate
 }
 
 
@@ -39,6 +47,8 @@ final class EditingActionsController {
 
     private let actions: [EditingAction]
     private let rights: UserRights
+    
+    public var model = EditingModel.normal
 
     init(actions: [EditingAction], rights: UserRights) {
         self.actions = actions
@@ -46,8 +56,20 @@ final class EditingActionsController {
     }
 
     func canPerformAction(_ action: Selector) -> Bool {
+
+        if model == .translate {
+            if action == Selector(EditingAction.translate.rawValue) || action == Selector(EditingAction.speak.rawValue) {
+                return true
+            }
+            return false
+        }
+        
+        
         for editingAction in self.actions {
-            if action == Selector(editingAction.rawValue) {
+            if action == Selector(editingAction.rawValue) || action == Selector(EditingAction.speak.rawValue) {
+                if action == Selector(EditingAction.translate.rawValue) {
+                    return false
+                }
                 return true
             }
         }
@@ -97,6 +119,31 @@ final class EditingActionsController {
         }
         
         UIPasteboard.general.string = text
+    }
+    
+    // MARK: -
+    
+    func speak() {
+        guard let text = selection?.text else {
+            return
+        }
+        
+        Translator.share.speak(text)
+        
+    }
+    
+    func showTranslat() {
+        guard let text = selection?.text else {
+            return
+        }
+        
+        guard let translateText = Translator.share.translate(text: text, simple: false) else {
+            return
+        }
+        let tvc = TranslationTextViewController()
+        tvc.show(html: translateText)
+        let nac  = UINavigationController(rootViewController: tvc)
+        (self.delegate as? UIViewController)?.present(nac, animated: true, completion: nil)
     }
     
     
