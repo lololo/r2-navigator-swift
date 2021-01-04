@@ -137,13 +137,21 @@ final class EditingActionsController {
             return
         }
         
-        guard let translateText = Translator.share.translate(text: text, simple: false) else {
-            return
+        do {
+            try Translator.share.translate(text: text, source: "en", target: "zh-CN", simple: false)
+                .then { (translateText) -> Void in
+                    guard let translateText = translateText else {
+                        return
+                    }
+                    let tvc = TranslationTextViewController()
+                    tvc.show(html: translateText)
+                    let nac  = UINavigationController(rootViewController: tvc)
+                    (self.delegate as? UIViewController)?.present(nac, animated: true, completion: nil)
+                }
+        } catch let error {
+            print(error)
         }
-        let tvc = TranslationTextViewController()
-        tvc.show(html: translateText)
-        let nac  = UINavigationController(rootViewController: tvc)
-        (self.delegate as? UIViewController)?.present(nac, animated: true, completion: nil)
+        
     }
     
     

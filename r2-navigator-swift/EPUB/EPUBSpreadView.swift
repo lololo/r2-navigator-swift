@@ -275,21 +275,28 @@ class EPUBSpreadView: UIView, Loggable {
     
     func translate(_ text:String) {
         
-        guard let simpleText = Translator.share.translate(text: text, simple: true) else {
-            return
+        do {
+            try Translator.share.translate(text: text,
+                                           source: "en",
+                                           target: "zh-CN",
+                                           simple: false)
+                .then { transText in
+                    self.editingActions.model = .translate
+                    UIMenuController.shared.menuItems = [
+                        UIMenuItem(title: "🔊", action: Selector(EditingAction.speak.rawValue)),
+                        UIMenuItem(
+                            title: transText ?? "...",
+                            action: Selector(EditingAction.translate.rawValue)
+                        ),
+                    ]
+                    UIMenuController.shared.update()
+                }
+        } catch let error {
+            print(error)
         }
-
-        self.editingActions.model = .translate
         
         
-        UIMenuController.shared.menuItems = [
-            UIMenuItem(title: "🔊", action: Selector(EditingAction.speak.rawValue)),
-            UIMenuItem(
-                title: simpleText,
-                action: Selector(EditingAction.translate.rawValue)
-            ),
-        ]
-        UIMenuController.shared.update()
+        
     }
 
     /// Called by the JavaScript layer when the user selection changed.
