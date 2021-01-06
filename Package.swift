@@ -12,7 +12,7 @@ let package = Package(
         .library(name: "R2Navigator", targets: ["R2Navigator"]),
     ],
     dependencies: [
-        .package(path: "/Users/lei/projects/Floral/Translator"),
+        .package(path: "/Users/lei/Projects/Floral/Translator"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "1.7.4"),
         .package(url: "https://github.com/mxcl/PromiseKit.git", .upToNextMajor(from: "6.8.4")),
         .package(name:"R2Shared", url: "https://github.com/lololo/r2-shared-swift.git", .branch("develop") )

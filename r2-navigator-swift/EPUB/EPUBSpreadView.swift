@@ -13,7 +13,7 @@ import WebKit
 import R2Shared
 import SwiftSoup
 import Translator
-
+import PromiseKit
 
 protocol EPUBSpreadViewDelegate: class {
     
@@ -274,28 +274,35 @@ class EPUBSpreadView: UIView, Loggable {
     }
     
     func translate(_ text:String) {
-        
-        do {
-            try Translator.share.translate(text: text,
-                                           source: "en",
-                                           target: "zh-CN",
-                                           simple: false)
-                .then { transText in
-                    self.editingActions.model = .translate
-                    UIMenuController.shared.menuItems = [
-                        UIMenuItem(title: "🔊", action: Selector(EditingAction.speak.rawValue)),
-                        UIMenuItem(
-                            title: transText ?? "...",
-                            action: Selector(EditingAction.translate.rawValue)
-                        ),
-                    ]
-                    UIMenuController.shared.update()
-                }
-        } catch let error {
+
+        firstly {
+            Translator.share.translate(text: text,
+                                       source: "en",
+                                       target: "zh-CN",
+                                       simple: true)
+        }.done { transText in
+            self.editingActions.model = .translate
+            UIMenuController.shared.menuItems = [
+                UIMenuItem(title: "🔊", action: Selector(EditingAction.speak.rawValue)),
+                UIMenuItem(
+                    title: transText,
+                    action: Selector(EditingAction.translate.rawValue)
+                ),
+            ]
+            UIMenuController.shared.update()
+            
+        }.catch { error in
             print(error)
         }
-        
-        
+        self.editingActions.model = .translate
+        UIMenuController.shared.menuItems = [
+            UIMenuItem(title: "🔊", action: Selector(EditingAction.speak.rawValue)),
+            UIMenuItem(
+                title: "...",
+                action: Selector(EditingAction.translate.rawValue)
+            ),
+        ]
+        UIMenuController.shared.update()
         
     }
 

@@ -20,20 +20,20 @@
         }
       },
       {
+        "package": "PromiseKit",
+        "repositoryURL": "https://github.com/mxcl/PromiseKit.git",
+        "state": {
+          "branch": null,
+          "revision": "aea48ea1855f5d82e2dffa6027afce3aab8f3dd7",
+          "version": "6.13.3"
+        }
+      },
+      {
         "package": "R2Shared",
         "repositoryURL": "https://github.com/lololo/r2-shared-swift.git",
         "state": {
           "branch": "develop",
           "revision": "71f40cd030a10631390f6189966f9c7209d25d89",
-          "version": null
-        }
-      },
-      {
-        "package": "SQLite",
-        "repositoryURL": "https://github.com/lololo/SQLite.git",
-        "state": {
-          "branch": "master",
-          "revision": "c2a7fac5a9eb4c2de148c4832618a62c16cd9086",
           "version": null
         }
       },

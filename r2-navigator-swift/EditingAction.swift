@@ -13,6 +13,7 @@ import Foundation
 import UIKit
 import R2Shared
 import Translator
+import PromiseKit
 
 
 public enum EditingAction: String {
@@ -127,9 +128,7 @@ final class EditingActionsController {
         guard let text = selection?.text else {
             return
         }
-        
         Translator.share.speak(text)
-        
     }
     
     func showTranslat() {
@@ -137,18 +136,16 @@ final class EditingActionsController {
             return
         }
         
-        do {
-            try Translator.share.translate(text: text, source: "en", target: "zh-CN", simple: false)
-                .then { (translateText) -> Void in
-                    guard let translateText = translateText else {
-                        return
-                    }
-                    let tvc = TranslationTextViewController()
-                    tvc.show(html: translateText)
-                    let nac  = UINavigationController(rootViewController: tvc)
-                    (self.delegate as? UIViewController)?.present(nac, animated: true, completion: nil)
-                }
-        } catch let error {
+        firstly {
+            Translator.share.translate(text: text, source: "en", target: "zh-CN", simple: false)
+        }.done { translateText in
+            print(translateText)
+            let tvc = TranslationTextViewController()
+            tvc.show(html: translateText)
+            let nac  = UINavigationController(rootViewController: tvc)
+            (self.delegate as? UIViewController)?.present(nac, animated: true, completion: nil)
+            
+        }.catch { error in
             print(error)
         }
         
