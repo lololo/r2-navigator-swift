@@ -81,7 +81,7 @@ final class EditingActionsController {
     // MARK: - Selection
     
     /// Current user selection contents and frame in the publication view.
-    private var selection: (text: String, frame: CGRect)?
+    var selection: (text: String, frame: CGRect)?
     
     /// Peeks into the available selection contents authorized for copy.
     /// To be used only when required to have the contents before actually using it (eg. Share dialog). To consume the actual copy, use `copy()`.

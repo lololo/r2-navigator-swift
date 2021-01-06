@@ -97,13 +97,6 @@ class EPUBSpreadView: UIView, Loggable {
 
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibility.voiceOverStatusDidChangeNotification.rawValue), object: nil)
         
-        UIMenuController.shared.menuItems = [
-            UIMenuItem(
-                title: NSLocalizedString("R2Navigator.EditingAction.share", comment: ""),
-                action: #selector(shareSelection)
-            )
-        ]
-        
         observerMenuNotification()
         updateActivityIndicator()
         loadSpread()
@@ -224,6 +217,12 @@ class EPUBSpreadView: UIView, Loggable {
     /// just save the tap data for use by webView(_ webView:decidePolicyFor:decisionHandler:)
     private func didTap(_ data: Any) {
         
+        if #available(iOS 13.0, *) {
+            UIMenuController.shared.hideMenu()
+        } else {
+            // Fallback on earlier versions
+            UIMenuController.shared.setMenuVisible(false, animated: true)
+        }
         
         // translate 模式, 已显示 翻译框的时候点击事件不传导
         if self.editingActions.model == .translate,
@@ -281,6 +280,7 @@ class EPUBSpreadView: UIView, Loggable {
                                        target: "zh-CN",
                                        simple: true)
         }.done { transText in
+            print(transText)
             self.editingActions.model = .translate
             UIMenuController.shared.menuItems = [
                 UIMenuItem(title: "🔊", action: Selector(EditingAction.speak.rawValue)),
@@ -290,20 +290,14 @@ class EPUBSpreadView: UIView, Loggable {
                 ),
             ]
             UIMenuController.shared.update()
-            
+            if #available(iOS 13.0, *) {
+                UIMenuController.shared.showMenu(from: self.webView, rect:self.editingActions.selection?.frame ?? CGRect.zero )
+            } else {
+                UIMenuController.shared.setMenuVisible(true, animated: true)
+            }
         }.catch { error in
             print(error)
         }
-        self.editingActions.model = .translate
-        UIMenuController.shared.menuItems = [
-            UIMenuItem(title: "🔊", action: Selector(EditingAction.speak.rawValue)),
-            UIMenuItem(
-                title: "...",
-                action: Selector(EditingAction.translate.rawValue)
-            ),
-        ]
-        UIMenuController.shared.update()
-        
     }
 
     /// Called by the JavaScript layer when the user selection changed.
