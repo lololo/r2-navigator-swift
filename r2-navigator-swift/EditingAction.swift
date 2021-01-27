@@ -14,7 +14,7 @@ import UIKit
 import R2Shared
 import Translator
 import PromiseKit
-
+import PreferSetting
 
 public enum EditingAction: String {
     case copy = "copy:"
@@ -68,7 +68,7 @@ final class EditingActionsController {
         
         for editingAction in self.actions {
             if action == Selector(editingAction.rawValue) || action == Selector(EditingAction.speak.rawValue) {
-                if action == Selector(EditingAction.translate.rawValue) {
+                if action == Selector(EditingAction.translate.rawValue ) || action == Selector(EditingAction.speak.rawValue) {
                     return false
                 }
                 return true
@@ -136,8 +136,11 @@ final class EditingActionsController {
             return
         }
         
+//        let sourceLanguage = BookTranslateSetting.share.
+        let targetLanguage = UserPreferSettings.share.defaultLanguage()
+                
         firstly {
-            Translator.share.translate(text: text, source: "en", target: "zh-CN", simple: false)
+            Translator.share.translate(text: text, source: "en", target: targetLanguage, simple: false)
         }.done { translateText in
             print(translateText)
             let tvc = TranslationTextViewController()

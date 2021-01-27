@@ -36,6 +36,7 @@ public class UserSettings {
     private var letterSpacing: Float = 0
     private var pageMargins: Float = 1
     private var lineHeight: Float = 1.5
+
     
     public let userProperties = UserProperties()
     

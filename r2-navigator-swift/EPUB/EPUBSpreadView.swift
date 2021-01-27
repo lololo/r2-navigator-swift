@@ -14,6 +14,7 @@ import R2Shared
 import SwiftSoup
 import Translator
 import PromiseKit
+import PreferSetting
 
 protocol EPUBSpreadViewDelegate: class {
     
@@ -37,6 +38,7 @@ protocol EPUBSpreadViewDelegate: class {
 class EPUBSpreadView: UIView, Loggable {
 
     weak var delegate: EPUBSpreadViewDelegate?
+    var bookId : String?
     let publication: Publication
     let spread: EPUBSpread
     
@@ -48,6 +50,8 @@ class EPUBSpreadView: UIView, Loggable {
     let editingActions: EditingActionsController
     
     var isMenuShow = false
+    
+    var isWebInTouch = false
     
     private var lastTap: TapData? = nil
 
@@ -273,14 +277,29 @@ class EPUBSpreadView: UIView, Loggable {
     }
     
     func translate(_ text:String) {
+        
+        print(self.bookId)
+        var sourceLanguage = "en"
+        if let bookId = self.bookId,
+           let bookLanguage = BookTranslateSetting.share.setting(for: bookId) {
+            sourceLanguage = bookLanguage
+        }
+        
+        let targetLanguage = UserPreferSettings.share.defaultLanguage()
 
         firstly {
             Translator.share.translate(text: text,
-                                       source: "en",
-                                       target: "zh-CN",
+                                       source: sourceLanguage,
+                                       target: targetLanguage,
                                        simple: true)
         }.done { transText in
             print(transText)
+            
+            guard let currentText = self.editingActions.selection?.text,
+               currentText == text else {
+                return
+            }
+            
             self.editingActions.model = .translate
             UIMenuController.shared.menuItems = [
                 UIMenuItem(title: "🔊", action: Selector(EditingAction.speak.rawValue)),
@@ -301,14 +320,14 @@ class EPUBSpreadView: UIView, Loggable {
     }
 
     /// Called by the JavaScript layer when the user selection changed.
-    private func selectionDidChange(_ body: Any) {
-        guard let selection = body as? [String: Any],
-            let text = selection["text"] as? String,
-            let frame = selection["frame"] as? [String: Any] else
-        {
-            log(.warning, "Invalid body for selectionDidChange: \(body)")
+    
+    func touchEnd(_ body: Any) {
+        self.isWebInTouch = false
+        
+        guard let text = self.editingActions.selection?.text, text.trimmingCharacters(in: .whitespacesAndNewlines).trimmingCharacters(in: .illegalCharacters).lengthOfBytes(using: String.Encoding.utf16) > 0 else {
             return
         }
+        
         UIMenuController.shared.menuItems = [
             UIMenuItem(title: "🔊", action: Selector(EditingAction.speak.rawValue)),
             UIMenuItem(
@@ -320,8 +339,20 @@ class EPUBSpreadView: UIView, Loggable {
         if self.editingActions.model == .translate {
             translate(text)
         }
-        
-        
+    }
+    
+    func touchStart(_ body:Any) {
+        self.isWebInTouch = true
+    }
+    
+    private func selectionDidChange(_ body: Any) {
+        guard let selection = body as? [String: Any],
+            let text = selection["text"] as? String,
+            let frame = selection["frame"] as? [String: Any] else
+        {
+            log(.warning, "Invalid body for selectionDidChange: \(body)")
+            return
+        }
         editingActions.selectionDidChange((
             text: text,
             frame: CGRect(
@@ -428,6 +459,9 @@ class EPUBSpreadView: UIView, Loggable {
         registerJSMessage(named: "tap") { [weak self] in self?.didTap($0) }
         registerJSMessage(named: "spreadLoaded") { [weak self] in self?.spreadDidLoad($0) }
         registerJSMessage(named: "selectionChanged") { [weak self] in self?.selectionDidChange($0) }
+        registerJSMessage(named: "touchEnd") { [weak self] in self?.touchEnd($0) }
+        registerJSMessage(named: "touchStart") { [weak self] in self?.touchStart($0) }
+        
     }
     
     /// Add the message handlers for incoming javascript events.

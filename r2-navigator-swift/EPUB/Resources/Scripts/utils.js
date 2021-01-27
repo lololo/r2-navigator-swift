@@ -67,6 +67,16 @@ var readium = (function() {
 
         webkit.messageHandlers.selectionChanged.postMessage(info);
     }));
+        
+        document.addEventListener('touchstart', function(e) {
+            var info = {"hello":"start"};
+            webkit.messageHandlers.touchStart.postMessage(info);
+        });
+        
+    document.addEventListener('touchend', function(e) {
+        var info = {"hello":"end"};
+        webkit.messageHandlers.touchEnd.postMessage(info);
+    });
 
     function orientationChanged() {
         maxScreenX = (window.orientation === 0 || window.orientation == 180) ? screen.width : screen.height;

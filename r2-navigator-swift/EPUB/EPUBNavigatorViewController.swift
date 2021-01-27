@@ -76,6 +76,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
         didSet { notifyCurrentLocation() }
     }
     public var userSettings: UserSettings
+    
+    public var bookId: String?
 
     public var readingProgression: ReadingProgression {
         didSet { updateUserSettingStyle() }
@@ -177,9 +179,10 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Logga
     /// Used to serve Readium CSS.
     private let resourcesURL: URL?
 
-    public init(publication: Publication, initialLocation: Locator? = nil, resourcesServer: ResourcesServer, config: Configuration = .init()) {
+    public init(publication: Publication, initialLocation: Locator? = nil, resourcesServer: ResourcesServer, config: Configuration = .init(), bookID:String? = nil) {
         assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
         
+        self.bookId = bookID
         self.publication = publication
         self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
         self.userSettings = UserSettings()
@@ -640,6 +643,7 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
             editingActions: editingActions,
             contentInset: config.contentInset
         )
+        spreadView.bookId = self.bookId
         spreadView.delegate = self
         return spreadView
     }
